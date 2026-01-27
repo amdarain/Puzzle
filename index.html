@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Puzzle Pro - Ahmed Ali Asif Edition</title>
+    <style>
+        :root {
+            --neon: #00f2ff;
+            --bg: #080a0c;
+            --card: #1c2128;
+            --accent: #2ecc71;
+            --red: #ff4757;
+            --text: #ffffff;
+            --tile: #21262d;
+            --border: #30363d;
+        }
+
+        body.light-mode {
+            --bg: #ffffff;
+            --card: #f0f2f5;
+            --text: #000000;
+            --tile: #e4e6e9;
+            --border: #ccd0d5;
+            --neon: #0056b3;
+            --accent: #1e7e34;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        
+        body { 
+            margin: 0; background: var(--bg); color: var(--text); 
+            height: 100vh; display: flex; justify-content: center; align-items: center;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden; touch-action: none;
+            transition: background 0.2s;
+        }
+
+        #custom-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000;
+            display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px);
+        }
+        .modal-box {
+            width: 85%; max-width: 300px; background: var(--card); border: 2px solid var(--neon);
+            border-radius: 20px; padding: 25px; text-align: center;
+        }
+
+        /* Buttons logic for modal */
+        .modal-btn-red { background: var(--red); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; flex: 1; }
+        .modal-btn-theme { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; flex: 1; }
+
+        #loader {
+            position: fixed; inset: 0; background: #080a0c; z-index: 9000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .loader-square {
+            width: 60px; height: 60px; border: 3px solid var(--neon);
+            border-radius: 12px; margin-bottom: 20px;
+            animation: rotateSquare 1.5s infinite;
+        }
+        @keyframes rotateSquare { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .page { display: none; width: 95%; max-width: 380px; flex-direction: column; align-items: center; }
+        .logo-text { font-size: 35px; font-weight: 900; margin-bottom: 20px; }
+        .logo-text span { color: var(--neon); }
+
+        .btn-main {
+            width: 100%; padding: 15px; margin: 5px 0; border-radius: 12px;
+            background: var(--card); border: 1px solid var(--border); color: var(--text);
+            font-size: 14px; font-weight: 800; cursor: pointer; text-transform: uppercase;
+        }
+        .btn-neon { background: var(--neon); color: #fff; border: none; }
+        .btn-reset { border: 1px solid var(--red); color: var(--red); font-size: 11px; padding: 6px 12px; border-radius: 6px; background: none; font-weight: bold; cursor: pointer; }
+
+        .game-grid {
+            display: grid; gap: 8px; background: var(--card); padding: 12px;
+            border-radius: 20px; border: 1px solid var(--border); width: 100%; aspect-ratio: 1/1;
+        }
+        .tile {
+            background: var(--tile); border-radius: 10px; display: flex;
+            justify-content: center; align-items: center; font-size: 24px;
+            color: var(--neon); font-weight: 900; border: 1px solid var(--border);
+            position: relative; transition: transform 0.1s, background 0.2s;
+            user-select: none;
+        }
+        .tile::after { 
+            content: attr(data-target); position: absolute; bottom: 4px; right: 6px; 
+            font-size: 10px; color: var(--text); opacity: 0.3; font-weight: bold;
+        }
+        .tile-correct { background: rgba(46, 204, 113, 0.2) !important; border-color: var(--accent) !important; color: var(--accent) !important; }
+        .tile-empty { background: transparent !important; border: 1px dashed var(--border) !important; color: transparent !important; }
+
+        .ahmed-brand { 
+            margin-top: 20px; font-size: 11px; font-weight: 900; letter-spacing: 3px; 
+            text-align: center; color: var(--neon); text-transform: uppercase;
+        }
+
+        .card-row {
+            width: 100%; background: var(--card); padding: 12px; border-radius: 10px;
+            margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid var(--border);
+        }
+        .tog-switch { width: 40px; height: 20px; background: #555; border-radius: 20px; position: relative; cursor: pointer; }
+        .tog-switch.on { background: var(--accent); }
+        .tog-switch::after { content: ''; position: absolute; width: 16px; height: 16px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.2s; }
+        .tog-switch.on::after { left: 22px; }
+
+        #win-screen {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999;
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <div class="loader-square"></div>
+        <div class="logo-text" style="color:white">PUZZLE<span>PRO</span></div>
+        <div class="ahmed-brand">CREATED BY AHMED ALI ASIF</div>
+    </div>
+
+    <div id="custom-modal">
+        <div class="modal-box">
+            <div id="modal-text" style="margin-bottom:20px; color:var(--text); font-size: 16px;"></div>
+            <div id="modal-footer" style="display:flex; gap:10px; justify-content:center;"></div>
+        </div>
+    </div>
+
+    <div id="win-screen">
+        <div style="font-size: 60px;">🏆</div>
+        <h2 style="color: #2ecc71;">EXCELLENT!</h2>
+        <p id="win-msg" style="color: white;"></p>
+        <button class="btn-main btn-neon" style="width: 200px;" onclick="nextLevel()">Next Level</button>
+        <div class="ahmed-brand">AHMED ALI ASIF</div>
+    </div>
+
+    <div id="page-menu" class="page">
+        <div class="logo-text">PUZZLE<span>PRO</span></div>
+        <button class="btn-main" onclick="startLevel('easy')">Easy Mode</button>
+        <button class="btn-main" onclick="startLevel('medium')">Medium Mode</button>
+        <button class="btn-main" onclick="startLevel('hard')">Hard Mode</button>
+        <div style="display:flex; gap:10px; width:100%">
+            <button class="btn-main" onclick="navTo('page-status')">Status</button>
+            <button class="btn-main" onclick="navTo('page-settings')">Settings</button>
+        </div>
+        <div class="ahmed-brand">BY AHMED ALI ASIF</div>
+    </div>
+
+    <div id="page-game" class="page">
+        <div style="width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <button onclick="navTo('page-menu')" style="background:none; border:none; color:var(--text); font-size:24px;">✕</button>
+            <div id="display-lvl" style="font-weight:900; color:var(--neon);">LEVEL 1</div>
+            <div id="display-time" style="font-weight:bold;">0s</div>
+        </div>
+        <div id="board" class="game-grid"></div>
+        <div style="color: var(--neon); font-size: 10px; margin-top: 8px; letter-spacing: 1px;">SWIPE OR CLICK TO MOVE</div>
+        <div class="ahmed-brand">AHMED ALI ASIF EDITION</div>
+    </div>
+
+    <div id="page-settings" class="page">
+        <h2>SETTINGS</h2>
+        <div class="card-row"><span>Sunlight Mode</span><div id="tog-sun" class="tog-switch" onclick="handleSetting('sun')"></div></div>
+        <div class="card-row"><span>Sound Effects</span><div id="tog-sound" class="tog-switch on" onclick="handleSetting('sound')"></div></div>
+        <div class="card-row"><span>Vibration</span><div id="tog-vib" class="tog-switch on" onclick="handleSetting('vib')"></div></div>
+        
+        <h3 style="margin: 20px 0 10px 0; color: var(--red); font-size: 14px; width: 100%; border-bottom: 1px solid #333; padding-bottom: 5px; text-align: left;">RESET PROGRESS</h3>
+        <div class="card-row"><span>Easy Mode</span><button class="btn-reset" onclick="confirmReset('easy')">RESET</button></div>
+        <div class="card-row"><span>Medium Mode</span><button class="btn-reset" onclick="confirmReset('medium')">RESET</button></div>
+        <div class="card-row"><span>Hard Mode</span><button class="btn-reset" onclick="confirmReset('hard')">RESET</button></div>
+
+        <button class="btn-main btn-neon" onclick="navTo('page-menu')" style="margin-top:20px;">Back</button>
+        <div class="ahmed-brand">AHMED ALI ASIF</div>
+    </div>
+
+    <div id="page-status" class="page">
+        <h2>YOUR PROGRESS</h2>
+        <div id="status-content" style="width:100%"></div>
+        <button class="btn-main" onclick="navTo('page-menu')">Back</button>
+        <div class="ahmed-brand">AHMED ALI ASIF</div>
+    </div>
+
+    <script>
+        let state = { 
+            config: { sound: true, vib: true, sun: false }, 
+            data: { easy: { lvl: 1 }, medium: { lvl: 1 }, hard: { lvl: 1 } } 
+        };
+        
+        const modeGaps = { easy: 3, medium: 2, hard: 1 };
+        let activeMode = 'easy', size = 3, boardArr = [], timerInt, ticks = 0, gameActive = false;
+        let touchStartX = 0, touchStartY = 0;
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(freq, type, duration) {
+            if(!state.config.sound) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function saveState() { localStorage.setItem('puzzle_pro_ahmed_vfinal', JSON.stringify(state)); }
+        function loadState() {
+            const saved = localStorage.getItem('puzzle_pro_ahmed_vfinal');
+            if (saved) {
+                state = JSON.parse(saved);
+                if(!state.config.sound) document.getElementById('tog-sound').classList.remove('on');
+                if(!state.config.vib) document.getElementById('tog-vib').classList.remove('on');
+                if(state.config.sun) { document.getElementById('tog-sun').classList.add('on'); document.body.classList.add('light-mode'); }
+            }
+        }
+
+        function navTo(pageId) {
+            document.getElementById('loader').style.display = 'none';
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            document.getElementById('win-screen').style.display = 'none';
+            document.getElementById(pageId).style.display = 'flex';
+            if(pageId === 'page-status') updateStatus();
+        }
+
+        function updateStatus() {
+            let html = '';
+            for(let m in state.data) html += `<div class="card-row"><span style="text-transform:capitalize">${m} Mode</span><b style="color:var(--neon)">Lvl ${state.data[m].lvl}</b></div>`;
+            document.getElementById('status-content').innerHTML = html;
+        }
+
+        function handleSetting(key) {
+            state.config[key] = !state.config[key];
+            document.getElementById('tog-'+key).classList.toggle('on');
+            if(key === 'sun') document.body.classList.toggle('light-mode');
+            saveState();
+        }
+
+        function confirmReset(mode) {
+            showPopup(`Would you like to reset <b>${mode.toUpperCase()}</b> mode?`, 'confirm', () => {
+                state.data[mode].lvl = 1;
+                saveState();
+                updateStatus();
+            });
+        }
+
+        function showPopup(msg, type, onConfirm) {
+            const modal = document.getElementById('custom-modal');
+            const footer = document.getElementById('modal-footer');
+            document.getElementById('modal-text').innerHTML = msg;
+            footer.innerHTML = '';
+            
+            if(type === 'confirm') {
+                // Cancel button (Theme style)
+                const bCancel = document.createElement('button'); 
+                bCancel.className = 'modal-btn-theme'; 
+                bCancel.innerText = 'Cancel';
+                bCancel.onclick = () => modal.style.display = 'none';
+                
+                // Yes/Reset button (Red style)
+                const bYes = document.createElement('button'); 
+                bYes.className = 'modal-btn-red'; 
+                bYes.innerText = 'Yes, Reset';
+                bYes.onclick = () => { onConfirm(); modal.style.display = 'none'; };
+                
+                footer.append(bCancel, bYes);
+            } else {
+                const b = document.createElement('button'); 
+                b.className = 'modal-btn-theme'; 
+                b.innerText = 'OK';
+                b.onclick = () => modal.style.display = 'none';
+                footer.append(b);
+            }
+            modal.style.display = 'flex';
+        }
+
+        function startLevel(mode) {
+            activeMode = mode;
+            let d = state.data[mode];
+            size = d.lvl <= 3 ? 3 : (d.lvl <= 8 ? 4 : 5);
+            document.getElementById('display-lvl').innerText = mode.toUpperCase() + " L" + d.lvl;
+            
+            let gaps = modeGaps[mode];
+            boardArr = [];
+            let total = size * size;
+            for(let i=1; i <= (total - gaps); i++) boardArr.push(i);
+            for(let i=0; i < gaps; i++) boardArr.push("");
+            
+            // Shuffle logic
+            for(let i=0; i<300; i++) {
+                let empties = [];
+                boardArr.forEach((v, idx) => { if(v==="") empties.push(idx); });
+                let eIdx = empties[Math.floor(Math.random()*empties.length)];
+                let r = Math.floor(eIdx/size), c = eIdx%size;
+                let moves = [];
+                if(r>0) moves.push(eIdx-size); if(r<size-1) moves.push(eIdx+size);
+                if(c>0) moves.push(eIdx-1); if(c<size-1) moves.push(eIdx+1);
+                let move = moves[Math.floor(Math.random()*moves.length)];
+                [boardArr[eIdx], boardArr[move]] = [boardArr[move], boardArr[eIdx]];
+            }
+            ticks = 0; gameActive = false; clearInterval(timerInt);
+            document.getElementById('display-time').innerText = "0s";
+            drawBoard(); navTo('page-game');
+        }
+
+        function drawBoard() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            board.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            const winLimit = size * size - modeGaps[activeMode];
+
+            boardArr.forEach((val, i) => {
+                const tile = document.createElement('div');
+                tile.className = val === "" ? "tile tile-empty" : "tile";
+                const targetVal = (i < winLimit) ? (i+1) : "";
+                tile.setAttribute('data-target', targetVal);
+                if(val !== "" && val === targetVal) tile.classList.add('tile-correct');
+                tile.innerHTML = val;
+                
+                tile.onclick = () => tryMove(i);
+                tile.ontouchstart = (e) => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; };
+                tile.ontouchend = (e) => handleSwipe(i, e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+                board.appendChild(tile);
+            });
+        }
+
+        function handleSwipe(idx, endX, endY) {
+            const dx = endX - touchStartX; const dy = endY - touchStartY;
+            if (Math.abs(dx) < 25 && Math.abs(dy) < 25) return;
+            let targetIdx = -1, r = Math.floor(idx/size), c = idx%size;
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (dx > 0 && c < size - 1) targetIdx = idx + 1;
+                else if (dx < 0 && c > 0) targetIdx = idx - 1;
+            } else {
+                if (dy > 0 && r < size - 1) targetIdx = idx + size;
+                else if (dy < 0 && r > 0) targetIdx = idx - size;
+            }
+            if (targetIdx !== -1 && boardArr[targetIdx] === "") executeMove(idx, targetIdx);
+        }
+
+        function tryMove(idx) {
+            let r = Math.floor(idx/size), c = idx%size;
+            let neighbors = [idx-size, idx+size, idx-1, idx+1];
+            for (let n of neighbors) {
+                if (n >= 0 && n < boardArr.length) {
+                    let nr = Math.floor(n/size), nc = n%size;
+                    if (Math.abs(r-nr) + Math.abs(c-nc) === 1 && boardArr[n] === "") {
+                        executeMove(idx, n); break;
+                    }
+                }
+            }
+        }
+
+        function executeMove(from, to) {
+            [boardArr[from], boardArr[to]] = [boardArr[to], boardArr[from]];
+            if(!gameActive) {
+                gameActive = true;
+                timerInt = setInterval(() => { ticks++; document.getElementById('display-time').innerText = ticks+"s"; }, 1000);
+            }
+            if(state.config.vib) navigator.vibrate(20);
+            playSound(600, 'sine', 0.1);
+            drawBoard(); checkWin();
+        }
+
+        function checkWin() {
+            let win = true;
+            const winLimit = size * size - modeGaps[activeMode];
+            for(let i=0; i < winLimit; i++) if(boardArr[i] !== i+1) win = false;
+            if(win && gameActive) {
+                gameActive = false; clearInterval(timerInt);
+                playSound(523, 'square', 0.2); setTimeout(() => playSound(659, 'square', 0.4), 200);
+                document.getElementById('win-msg').innerText = `Level ${state.data[activeMode].lvl} cleared in ${ticks}s!`;
+                setTimeout(() => { document.getElementById('win-screen').style.display = 'flex'; }, 300);
+            }
+        }
+
+        function nextLevel() { state.data[activeMode].lvl++; saveState(); startLevel(activeMode); }
+
+        window.onload = () => { loadState(); setTimeout(() => navTo('page-menu'), 1800); };
+    </script>
+</body>
+</html>
+
