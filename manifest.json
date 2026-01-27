@@ -1,9 +1,9 @@
 {
-  "name": "Puzzle Pro - Swipe Edition",
+  "name": "Puzzle Pro",
   "short_name": "Puzzle Pro",
-  "start_url": "./",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#000000",
+  "background_color": "#080a0c",
   "theme_color": "#00f2ff",
   "icons": [
     {
