@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Puzzle Pro - Ahmed Ali Asif Edition</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#00f2ff">
+<link rel="apple-touch-icon" href="icon-192.png">
     <style>
         :root {
             --neon: #00f2ff;
@@ -375,6 +378,11 @@
         function nextLevel() { state.data[activeMode].lvl++; saveState(); startLevel(activeMode); }
 
         window.onload = () => { loadState(); setTimeout(() => navTo('page-menu'), 1800); };
+    </script>
+    <script>
+if('serviceWorker' in navigator){
+ navigator.serviceWorker.register('sw.js');
+}
     </script>
 </body>
 </html>
