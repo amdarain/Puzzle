@@ -17,6 +17,7 @@
             --text: #ffffff;
             --tile: #21262d;
             --border: #30363d;
+            --insta-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
         }
 
         body.light-mode {
@@ -27,6 +28,7 @@
             --border: #ccd0d5;
             --neon: #0056b3;
             --accent: #1e7e34;
+            --insta-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
@@ -36,8 +38,32 @@
             height: 100vh; display: flex; justify-content: center; align-items: center;
             font-family: 'Segoe UI', sans-serif;
             overflow: hidden; touch-action: none;
-            transition: background 0.2s;
+            transition: background 0.2s, color 0.2s;
         }
+
+        /* Fixed Instagram Button in Corner */
+        .insta-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            text-decoration: none;
+            background: var(--card);
+            color: var(--neon);
+            border: 1.5px solid var(--neon);
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: var(--insta-shadow);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .insta-btn:active { transform: scale(0.95); opacity: 0.8; }
 
         #custom-modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000;
@@ -48,7 +74,6 @@
             border-radius: 20px; padding: 25px; text-align: center;
         }
 
-        /* Buttons logic for modal */
         .modal-btn-red { background: var(--red); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; flex: 1; }
         .modal-btn-theme { background: var(--card); color: var(--text); border: 1px solid var(--border); padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; flex: 1; }
 
@@ -63,7 +88,7 @@
         }
         @keyframes rotateSquare { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .page { display: none; width: 95%; max-width: 380px; flex-direction: column; align-items: center; }
+        .page { display: none; width: 95%; max-width: 380px; flex-direction: column; align-items: center; position: relative; }
         .logo-text { font-size: 35px; font-weight: 900; margin-bottom: 20px; }
         .logo-text span { color: var(--neon); }
 
@@ -112,37 +137,15 @@
             position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999;
             display: none; flex-direction: column; justify-content: center; align-items: center;
         }
-        .btn-insta {
-    width: 100%;
-    padding: 15px;
-    margin: 8px 0;
-    border-radius: 12px;
-    border: none;
-    font-size: 14px;
-    font-weight: 800;
-    text-transform: uppercase;
-    cursor: pointer;
-    color: white;
-    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-    background-size: 300% 300%;
-    animation: instaGradient 4s ease infinite;
-    box-shadow: 0 0 15px rgba(220, 39, 67, 0.6);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.btn-insta:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 25px rgba(220, 39, 67, 0.9);
-}
-
-@keyframes instaGradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
     </style>
 </head>
 <body>
+
+    <div id="insta-container" style="display:none">
+        <a href="https://www.instagram.com/amd_arain/" target="_blank" class="insta-btn">
+            FOLLOW @AMD_ARAIN
+        </a>
+    </div>
 
     <div id="loader">
         <div class="loader-square"></div>
@@ -249,6 +252,14 @@
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.getElementById('win-screen').style.display = 'none';
             document.getElementById(pageId).style.display = 'flex';
+            
+            // Show Instagram button ONLY on main menu and status/settings
+            if(pageId === 'page-game') {
+                document.getElementById('insta-container').style.display = 'none';
+            } else {
+                document.getElementById('insta-container').style.display = 'block';
+            }
+
             if(pageId === 'page-status') updateStatus();
         }
 
@@ -280,13 +291,11 @@
             footer.innerHTML = '';
             
             if(type === 'confirm') {
-                // Cancel button (Theme style)
                 const bCancel = document.createElement('button'); 
                 bCancel.className = 'modal-btn-theme'; 
                 bCancel.innerText = 'Cancel';
                 bCancel.onclick = () => modal.style.display = 'none';
                 
-                // Yes/Reset button (Red style)
                 const bYes = document.createElement('button'); 
                 bYes.className = 'modal-btn-red'; 
                 bYes.innerText = 'Yes, Reset';
@@ -315,7 +324,6 @@
             for(let i=1; i <= (total - gaps); i++) boardArr.push(i);
             for(let i=0; i < gaps; i++) boardArr.push("");
             
-            // Shuffle logic
             for(let i=0; i<300; i++) {
                 let empties = [];
                 boardArr.forEach((v, idx) => { if(v==="") empties.push(idx); });
@@ -406,11 +414,6 @@
         function nextLevel() { state.data[activeMode].lvl++; saveState(); startLevel(activeMode); }
 
         window.onload = () => { loadState(); setTimeout(() => navTo('page-menu'), 1800); };
-    </script>
-    <script>
-if('serviceWorker' in navigator){
- navigator.serviceWorker.register('sw.js');
-}
     </script>
 </body>
 </html>
