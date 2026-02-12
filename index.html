@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Puzzle Pro - Ahmed Ali Asif Edition</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#00f2ff">
-<link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00f2ff">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <style>
         :root {
             --neon: #00f2ff;
@@ -41,12 +41,15 @@
             transition: background 0.2s, color 0.2s;
         }
 
-        /* Fixed Instagram Button in Corner */
-        .insta-btn {
+        /* Fixed Instagram Button */
+        #insta-container {
             position: fixed;
             top: 20px;
             right: 20px;
             z-index: 1000;
+        }
+
+        .insta-btn {
             text-decoration: none;
             background: var(--card);
             color: var(--neon);
@@ -59,9 +62,7 @@
             text-transform: uppercase;
             box-shadow: var(--insta-shadow);
             transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            display: inline-block;
         }
         .insta-btn:active { transform: scale(0.95); opacity: 0.8; }
 
@@ -136,29 +137,12 @@
         #win-screen {
             position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999;
             display: none; flex-direction: column; justify-content: center; align-items: center;
-            #insta-container {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 20000;
-}
-
-#insta-container .insta-btn {
-  background: #E1306C !important;
-  color: white !important;
-  padding: 10px 18px;
-  border-radius: 25px;
-  text-decoration: none;
-  font-weight: bold;
-  font-size: 14px;
-  box-shadow: 0 0 10px rgba(225,48,108,0.6);
-}
         }
     </style>
 </head>
 <body>
 
-    <div id="insta-container"
+    <div id="insta-container" style="display:none">
         <a href="https://www.instagram.com/amd_arain/" target="_blank" class="insta-btn">
             FOLLOW @AMD_ARAIN
         </a>
@@ -217,7 +201,7 @@
         <h3 style="margin: 20px 0 10px 0; color: var(--red); font-size: 14px; width: 100%; border-bottom: 1px solid #333; padding-bottom: 5px; text-align: left;">RESET PROGRESS</h3>
         <div class="card-row"><span>Easy Mode</span><button class="btn-reset" onclick="confirmReset('easy')">RESET</button></div>
         <div class="card-row"><span>Medium Mode</span><button class="btn-reset" onclick="confirmReset('medium')">RESET</button></div>
-        <div class="card-row"><span>Hard Mode</span><button class="btn-reset" onclick="confirmReset('hard')">RESET</button></div>
+        <div class="card-row)<span>Hard Mode</span><button class="btn-reset" onclick="confirmReset('hard')">RESET</button></div>
 
         <button class="btn-main btn-neon" onclick="navTo('page-menu')" style="margin-top:20px;">Back</button>
         <div class="ahmed-brand">AHMED ALI ASIF</div>
@@ -270,7 +254,6 @@
             document.getElementById('win-screen').style.display = 'none';
             document.getElementById(pageId).style.display = 'flex';
             
-            // Show Instagram button ONLY on main menu and status/settings
             if(pageId === 'page-game') {
                 document.getElementById('insta-container').style.display = 'none';
             } else {
